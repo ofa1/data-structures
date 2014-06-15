@@ -4,15 +4,22 @@
 		<meta charset="ISO-8859-1">
 		<title>Linked List</title>
 		<script src="js/kinetic-v5.1.0.js"></script>
+		<link rel="stylesheet" href="css/bootstrap.min.css" />
 
 	</head>
 	<body>
 
-		<div class="main">
+		<div class="container jumbotron">
 			<div id="container">
 			</div>
-			<input type="text" value="1" id="input" />
-			<input type="button" onclick="addToList()" value="Add To List" />
+			<form class="form-horizontal">
+				<div class="col-xs-2">
+					<input type="text" class="form-control" value="1" id="input" />
+					<br />
+					<input type="button" class="btn btn-success" onclick="addToList()" value="Add" />
+					<input type="button" class="btn btn-danger" onclick="deleteFromList()" value="Delete" />
+				</div>
+			</form>
 		</div>
 		<script src="js/linkedlist.js" type="text/javascript" charset="utf-8"></script>
 	</body>

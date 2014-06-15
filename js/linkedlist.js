@@ -1,29 +1,42 @@
 /**
- *
+ * Script file for demonstrating Linked List 
  */
+
+//Create a KineticJS Stage
 var stage = new Kinetic.Stage({
 	container : 'container',
 	width : 768,
 	height : 200
 });
+//Add a layer in the DOM
 var layer = new Kinetic.Layer();
+//create a group of objects (box, text, line)
 var group = new Kinetic.Group({
 	draggable : true
 });
+
+//Create a new List object
 var list = new List();
 
+//add 10 items as example
 for (var i = 1; i <= 10; i++) {
-	list.add(i);
+	list.add(i+'');
 }
-
+//add the group to the layer
 layer.add(group);
+
+//add layer to stage
 stage.add(layer);
+
+
 list.remove(10);
 
-// list.each(function(item) {
-// console.log(item);
-// //     alert(item.data);
-// });
+//Uncomment below lines to print the linked list in the console
+//list.each(function(item) {
+//console.log(item);
+//});
+
+//Function to add to the list, called from the input button in HTML
 function addToList() {
 	var ip = document.getElementById('input').value;
 	if (ip == null)
@@ -31,11 +44,26 @@ function addToList() {
 	list.add(ip);
 }
 
+function deleteFromList() {
+	var ip = document.getElementById('input').value;
+	if (ip == null)
+		return;
+	list.remove(ip);
+}
+
+/**
+ * Constructor for List
+ * 
+ */
 function List() {
+	/**
+	 * Method to create a new node in the list
+	 * returns an object node with the variables data, next, text, box, line
+	 * 
+	 * storing the graphical representation objects also in the same node for ease in later modifications
+	*/ 
 	List.makeNode = function() {
 		return {
-			x : 10,
-			y : 20,
 			data : null,
 			next : null,
 			text : null,
@@ -46,6 +74,7 @@ function List() {
 	this.start = null;
 	this.end = null;
 
+	//Method to add to the list
 	this.add = function(data) {
 		var x = 10;
 		var y = 20;
@@ -55,8 +84,8 @@ function List() {
 			this.end = this.start;
 		} else {
 			this.end.next = List.makeNode();
-			x = this.end.x + 60;
-			y = this.end.y;
+			x = this.end.box.x() + 60;
+			y = this.end.box.y();
 			this.end = this.end.next;
 			this.end.x = x;
 			this.end.y = y;
@@ -108,6 +137,7 @@ function List() {
 		this.end.box = box;
 	};
 
+	//Method to remove from the list
 	this.remove = function(data) {
 		var current = this.start;
 		var previous = this.start;
@@ -116,10 +146,14 @@ function List() {
 			if (data === current.data) {
 				current.box.destroy();
 				current.text.destroy();
-				current.line.destroy();
+				if(current.line !== null)
+					current.line.destroy();
 				layer.draw();
 				if (current === this.start) {
 					this.start = current.next;
+					this.start.line.destroy();
+					layer.draw();
+					this.rearrange(this.start);
 					return;
 				}
 				if (current === this.end) {
@@ -128,7 +162,7 @@ function List() {
 					return;
 				}
 				previous.next = current.next;
-
+				this.rearrange(previous.next);
 				return;
 			}
 			previous = current;
@@ -136,12 +170,18 @@ function List() {
 		}
 	};
 
+	//Method to rearrange the graphical layout
 	this.rearrange = function(current) {
 		while(current !== null) {
-			current.box.x = current.box.x - 40;
-			current.text.x = current.text.x - 40;
+			current.box.x(current.box.x() - current.box.width() - 10);
+			current.text.x(current.text.x() - current.box.width() - 10);
+			if(current.line !== null)
+			{
+				current.line.setPoints([current.box.x()-10, current.box.y()+25, current.box.x(), current.box.y()+25]);
+			}
 			current = current.next;
 		}
+		layer.draw();
 	};
 
 	this.insertAsFirst = function(d) {
