@@ -10,14 +10,22 @@
 	<body>
 
 		<div class="container jumbotron">
+			<h3>Linked List</h3>
 			<div id="container">
 			</div>
+
 			<form class="form-horizontal">
 				<div class="col-xs-2">
 					<input type="text" class="form-control" value="1" id="input" />
 					<br />
 					<input type="button" class="btn btn-success" onclick="addToList()" value="Add" />
 					<input type="button" class="btn btn-danger" onclick="deleteFromList()" value="Delete" />
+					<br />
+					<input type="button" class="btn btn-success" onclick="addToStart()" value="Add at Start" />
+					<form class="form-inline">
+						<input type="button" class="btn btn-success" onclick="addAfter()" value="Add After:" />
+						<input type="text" class="form-control" value="1" id="after" />
+					</form>
 				</div>
 			</form>
 		</div>

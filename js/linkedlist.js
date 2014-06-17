@@ -8,6 +8,7 @@ var stage = new Kinetic.Stage({
 	width : 768,
 	height : 200
 });
+
 //Add a layer in the DOM
 var layer = new Kinetic.Layer();
 //create a group of objects (box, text, line)
@@ -15,11 +16,15 @@ var group = new Kinetic.Group({
 	draggable : true
 });
 
+var boxWidth = 40;
+var lineWidth = 20;
+var lineHeight = 20;
+
 //Create a new List object
 var list = new List();
 
-//add 10 items as example
-for (var i = 1; i <= 10; i++) {
+//add some items as example
+for (var i = 1; i <= 5; i++) {
 	list.add(i+'');
 }
 //add the group to the layer
@@ -44,6 +49,22 @@ function addToList() {
 	list.add(ip);
 }
 
+//Function to add to start of list, called from the input button in HTML
+function addToStart() {
+	var ip = document.getElementById('input').value;
+	if (ip == null)
+		ip = 1;
+	list.insertAsFirst(ip);
+}
+
+//Function to add to start of list, called from the input button in HTML
+function addAfter() {
+	var after = document.getElementById('after').value;
+	var d = document.getElementById('input').value;
+	
+	list.insertAfter(after, d);
+}
+
 function deleteFromList() {
 	var ip = document.getElementById('input').value;
 	if (ip == null)
@@ -53,22 +74,74 @@ function deleteFromList() {
 
 /**
  * Constructor for List
- * 
  */
 function List() {
 	/**
 	 * Method to create a new node in the list
-	 * returns an object node with the variables data, next, text, box, line
+	 * returns an object node with the variables data, next, textbox
 	 * 
 	 * storing the graphical representation objects also in the same node for ease in later modifications
 	*/ 
 	List.makeNode = function() {
+		var textbox = new Kinetic.Group({
+			x : 10,
+			y : 20,
+			draggable : false
+		});
+		//Text
+		var text = new Kinetic.Text({
+			text : ' ',
+			fontSize : 25,
+			fontFamily : 'Calibri',
+			fill : 'black',
+			width : boxWidth,
+			height : boxWidth,
+			padding : 10,
+			align : 'center'
+		});
+
+		//Box
+		var box = new Kinetic.Rect({
+			fill : 'white',
+			stroke : 'black',
+			width : boxWidth,
+			height : boxWidth,
+			strokeWidth : 1
+		});
+		
+		//add line in GUI to 'connect' it to previous box
+		var line = new Kinetic.Line({
+			//Line starts from negative of box's X till start of box
+			points : [-lineWidth, lineHeight,  0 , lineHeight],
+			stroke : 'black',
+			visible : false
+		});
+		textbox.add(line);
+		textbox.add(box);
+		textbox.add(text);
+		
+		// add other configuration to textbox
+		textbox.on('mouseover', function() {
+			document.body.style.cursor = 'pointer';
+			box.stroke('blue');
+			box.strokeWidth(3);
+			layer.draw();
+		});
+		textbox.on('mouseout', function() {
+			document.body.style.cursor = 'default';
+			box.stroke('black');
+			box.strokeWidth(1);
+			layer.draw();
+		});
+		textbox.on('click', function() {
+			document.getElementById('input').value = text.text();
+			document.getElementById('after').value = text.text();
+		});
+		layer.add(textbox);
 		return {
 			data : null,
 			next : null,
-			text : null,
-			box : null,
-			line : null
+			textbox : textbox
 		};
 	};
 	this.start = null;
@@ -78,63 +151,41 @@ function List() {
 	this.add = function(data) {
 		var x = 10;
 		var y = 20;
-
+		
+		//If start node is null
 		if (this.start === null) {
 			this.start = List.makeNode();
 			this.end = this.start;
 		} else {
+			//insert at the end
 			this.end.next = List.makeNode();
-			x = this.end.box.x() + 60;
-			y = this.end.box.y();
+			
+			//get coordinates of previous node
+			x = this.end.textbox.x();
+			y = this.end.textbox.y();
+			
+			//add node in list
 			this.end = this.end.next;
-			this.end.x = x;
-			this.end.y = y;
-			var line = new Kinetic.Line({
-				points : [x - 10, y + 25, x + 10, y + 25],
-				stroke : 'black',
-				lineJoin : 'miter'
-			});
-			group.add(line);
-			this.end.line = line;
+			
+			//set coordinates of current node 
+			this.end.textbox.x(x + boxWidth + lineWidth);
+			this.end.textbox.y(y);
+			
+			//make line visible
+			this.end.textbox.getChildren(function(node){
+				   return node.getClassName() === 'Line';
+			}).visible(true);
 		}
 
-		var text = new Kinetic.Text({
-			x : x,
-			y : y,
-			text : data,
-			fontSize : 25,
-			fontFamily : 'Calibri',
-			fill : 'black',
-			width : 50,
-			height : 50,
-			padding : 10,
-			align : 'center'
-		});
-
-		var box = new Kinetic.Rect({
-			x : x,
-			y : y,
-			width : 50,
-			height : 50,
-			fill : 'white',
-			stroke : 'black',
-			strokeWidth : 1
-		});
-		// add cursor styling
-		group.on('mouseover', function() {
-			document.body.style.cursor = 'pointer';
-		});
-		group.on('mouseout', function() {
-			document.body.style.cursor = 'default';
-		});
-
-		group.add(box);
-		group.add(text);
-
+		//set data in GUI
+		this.end.textbox.getChildren(function(node){
+			   return node.getClassName() === 'Text';
+		}).text(data);
+		
+		
 		layer.draw();
+		
 		this.end.data = data;
-		this.end.text = text;
-		this.end.box = box;
 	};
 
 	//Method to remove from the list
@@ -144,51 +195,81 @@ function List() {
 
 		while (current !== null) {
 			if (data === current.data) {
-				current.box.destroy();
-				current.text.destroy();
-				if(current.line !== null)
-					current.line.destroy();
+				
+				//Destroy Graphical elements
+				current.textbox.destroy();
 				layer.draw();
+				
+				//If element is start element
 				if (current === this.start) {
 					this.start = current.next;
-					this.start.line.destroy();
+					
+					//remove connecting line
+					this.start.textbox.getChildren(function(node){
+						   return node.getClassName() === 'Line';
+					}).visible(false);
 					layer.draw();
-					this.rearrange(this.start);
+					
+					//Rearrange the GUI
+					this.rearrange(this.start, true);
 					return;
 				}
+				
+				//If element is last element
 				if (current === this.end) {
 					this.end = previous;
 					previous.next = current.next;
 					return;
 				}
+				
+				//If element is middle element
 				previous.next = current.next;
-				this.rearrange(previous.next);
+				
+				//Rearrange GUI
+				this.rearrange(previous.next, true);
 				return;
 			}
+			//else, continue iterating
 			previous = current;
 			current = current.next;
 		}
 	};
 
 	//Method to rearrange the graphical layout
-	this.rearrange = function(current) {
+	this.rearrange = function(current, left) {
 		while(current !== null) {
-			current.box.x(current.box.x() - current.box.width() - 10);
-			current.text.x(current.text.x() - current.box.width() - 10);
-			if(current.line !== null)
-			{
-				current.line.setPoints([current.box.x()-10, current.box.y()+25, current.box.x(), current.box.y()+25]);
-			}
+			//move left?
+			if(left)
+				current.textbox.x(current.textbox.x() - boxWidth - lineWidth);
+			//move right
+			else
+				current.textbox.x(current.textbox.x() + boxWidth + lineWidth);
 			current = current.next;
 		}
 		layer.draw();
 	};
 
+	//Method to insert data as first element in list
 	this.insertAsFirst = function(d) {
 		var temp = List.makeNode();
 		temp.next = this.start;
+		
+		//make line visible
+		this.start.textbox.getChildren(function(node){
+			   return node.getClassName() === 'Line';
+		}).visible(true);
+		
+		//set first element
 		this.start = temp;
+		
+		//set text
+		this.start.textbox.getChildren(function(node){
+			   return node.getClassName() === 'Text';
+		}).text(d);
 		temp.data = d;
+		
+		//rearrange GUI
+		this.rearrange(temp.next, false);
 	};
 
 	this.insertAfter = function(t, d) {
@@ -197,10 +278,26 @@ function List() {
 			if (current.data === t) {
 				var temp = List.makeNode();
 				temp.data = d;
+				//set coordinates of current node 
+				temp.textbox.x(current.textbox.x());
+				temp.textbox.y(current.textbox.y());
+				
+				//make line visible
+				temp.textbox.getChildren(function(node){
+					   return node.getClassName() === 'Line';
+				}).visible(true);
+				
+				//set data in GUI
+				temp.textbox.getChildren(function(node){
+					   return node.getClassName() === 'Text';
+				}).text(d);
+				
 				temp.next = current.next;
 				if (current === this.end)
 					this.end = temp;
 				current.next = temp;
+				
+				this.rearrange(temp, false);
 
 				return;
 			}
@@ -228,4 +325,4 @@ function List() {
 
 	};
 
-}
+}	//end List()
