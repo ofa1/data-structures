@@ -3,15 +3,31 @@
 	<head>
 		<meta charset="ISO-8859-1">
 		<title>Linked List</title>
-		<script src="js/kinetic-v5.1.0.js"></script>
+		<script src="js/fabric.js"></script>
 		<link rel="stylesheet" href="css/bootstrap.min.css" />
 
 	</head>
 	<body>
 
 		<div class="container jumbotron">
-			<div id="container">
-			</div>
+			<h3>Linked List</h3>
+			<canvas id="c" width="768px">
+			</canvas>
+
+			<form class="form-horizontal">
+				<div class="col-xs-2">
+					<input type="text" class="form-control" value="1" id="input" />
+					<br />
+					<input type="button" class="btn btn-success" onclick="addToList()" value="Add" />
+					<input type="button" class="btn btn-danger" onclick="deleteFromList()" value="Delete" />
+					<br />
+					<input type="button" class="btn btn-success" onclick="addToStart()" value="Add at Start" />
+					<form class="form-inline">
+						<input type="button" class="btn btn-success" onclick="addAfter()" value="Add After:" />
+						<input type="text" class="form-control" value="1" id="after" />
+					</form>
+				</div>
+			</form>
 		</div>
 		<script src="js/test.js" type="text/javascript" charset="utf-8"></script>
 	</body>
